@@ -38,6 +38,6 @@ public class Book {
     @ManyToOne
     Author author;
 
-    @OneToOne
+    @ManyToOne
     Genre genre;
 }

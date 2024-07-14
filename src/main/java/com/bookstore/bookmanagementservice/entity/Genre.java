@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Entity
 @Table
 @Getter
@@ -21,6 +23,6 @@ public class Genre {
     @Column
     String name;
 
-    @OneToOne
-    Book book;
+    @OneToMany
+    Set<Book> book;
 }
