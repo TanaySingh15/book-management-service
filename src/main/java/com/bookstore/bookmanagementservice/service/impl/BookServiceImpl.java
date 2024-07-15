@@ -16,11 +16,6 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<BookListResponse> getAllBooks() {
-        return List.of();
-    }
-
-    @Override
     public BookDto getBookById(Integer id) {
         return null;
     }

@@ -1,16 +1,14 @@
 package com.bookstore.bookmanagementservice.exception;
 
+
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class ResourceNotFoundException extends RuntimeException{
-
+public class AuthorException extends Exception{
     String resourceName;
-
-    public ResourceNotFoundException(String resourceName) {
-        super("Not found");
+    public AuthorException(String resourceName) {
         this.resourceName = resourceName;
     }
 }
