@@ -1,9 +1,11 @@
 package com.bookstore.bookmanagementservice.payload.responses;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class BookResponse {
     private String bookTitle;
     private String author;

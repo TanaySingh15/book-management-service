@@ -4,12 +4,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 
 @Getter
 @Setter
 @NoArgsConstructor
 public class GenreDto {
-    Integer bookId;
+    Integer genreId;
     String name;
-    BookDto book;
+    Set<BookDto> book;
 }
