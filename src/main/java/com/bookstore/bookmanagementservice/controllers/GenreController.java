@@ -20,7 +20,7 @@ public class GenreController {
     @Resource
     private GenreServiceImpl genreService;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<GenreResponse> addGenre(@RequestBody GenreDto genreDto) {
         GenreDto newGenre = genreService.createNewGenre(genreDto);
         Set<String> books = new HashSet<>();
@@ -29,7 +29,7 @@ public class GenreController {
         return new ResponseEntity<>(genreResponse, HttpStatus.CREATED);
     }
 
-    @PutMapping
+    @PutMapping("/update/{id}")
     public ResponseEntity<GenreResponse> updateGenre(@RequestBody GenreDto genreDto, @PathVariable Integer id) {
         GenreDto updateGenre = genreService.updateGenreById(id, genreDto);
         Set<String> books = new HashSet<>();
@@ -38,14 +38,14 @@ public class GenreController {
         return new ResponseEntity<>(genreResponse, HttpStatus.OK);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<ApiResponse> deleteGenre(@RequestBody GenreDto genreDto, @PathVariable Integer id) throws GenreException {
         genreService.deleteGenreById(id);
         ApiResponse apiResponse = new ApiResponse("Successfully Deleted", HttpStatus.OK);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/{id}")
     public ResponseEntity<GenreResponse> getGenreById(@PathVariable Integer id) {
         GenreDto getGenre = genreService.getGenreById(id);
         Set<String> books = new HashSet<>();

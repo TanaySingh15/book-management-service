@@ -20,7 +20,7 @@ public class AuthorController {
     @Resource
     private AuthorServiceImpl authorService;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<AuthorResponse> addAuthor(@RequestBody AuthorDto authorDto) {
         AuthorDto newAuthor = authorService.createNewAuthor(authorDto);
         Set<String> books = new HashSet<>();
@@ -29,7 +29,7 @@ public class AuthorController {
         return new ResponseEntity<>(authorResponse, HttpStatus.CREATED);
     }
 
-    @PutMapping
+    @PutMapping("/update/{id}")
     public ResponseEntity<AuthorResponse> updateAuthor(@RequestBody AuthorDto authorDto, @PathVariable Integer id) {
         AuthorDto updateAuthor = authorService.updateAuthorById(id, authorDto);
         Set<String> books = new HashSet<>();
@@ -38,14 +38,14 @@ public class AuthorController {
         return new ResponseEntity<>(authorResponse, HttpStatus.OK);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<ApiResponse> deleteAuthor(@RequestBody AuthorDto authorDto, @PathVariable Integer id) throws AuthorException {
         authorService.deleteAuthorById(id);
         ApiResponse apiResponse = new ApiResponse("Successfully Deleted", HttpStatus.OK);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/{id}")
     public ResponseEntity<AuthorResponse> getAuthorById(@PathVariable Integer id) {
         AuthorDto getAuthor = authorService.getAuthorById(id);
         Set<String> books = new HashSet<>();

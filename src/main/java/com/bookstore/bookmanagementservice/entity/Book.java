@@ -1,10 +1,7 @@
 package com.bookstore.bookmanagementservice.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.sql.Timestamp;
 
@@ -14,6 +11,7 @@ import java.sql.Timestamp;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class Book {
 
     @Id
@@ -35,9 +33,9 @@ public class Book {
     @Column
     long updated_date;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     Author author;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     Genre genre;
 }

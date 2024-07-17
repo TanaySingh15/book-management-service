@@ -12,37 +12,37 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/books/")
+@RequestMapping("/api/books")
 public class BookController {
 
     @Resource
     private BookServiceImpl bookService;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<BookResponse> addBook(@RequestBody BookDto bookDto) throws AuthorException, GenreException {
         BookDto newBook = bookService.createNewBook(bookDto);
-        BookResponse bookResponse = new BookResponse(newBook.getTitle(), newBook.getAuthor().getName(), newBook.getGenre().getName(), newBook.getIsbn(), newBook.getStock());
+        BookResponse bookResponse = new BookResponse(newBook.getBookId(), newBook.getTitle(), newBook.getAuthor().getName(), newBook.getGenre().getName(), newBook.getIsbn(), newBook.getStock());
         return new ResponseEntity<>(bookResponse, HttpStatus.CREATED);
     }
 
-    @PutMapping
+    @PutMapping("/update/{id}")
     public ResponseEntity<BookResponse> updateBook(@RequestBody BookDto bookDto, @PathVariable Integer id) {
         BookDto newBook = bookService.updateBookById(id, bookDto);
-        BookResponse bookResponse = new BookResponse(newBook.getTitle(), newBook.getAuthor().getName(), newBook.getGenre().getName(), newBook.getIsbn(), newBook.getStock());
+        BookResponse bookResponse = new BookResponse(newBook.getBookId(),newBook.getTitle(), newBook.getAuthor().getName(), newBook.getGenre().getName(), newBook.getIsbn(), newBook.getStock());
         return new ResponseEntity<>(bookResponse, HttpStatus.CREATED);
     }
 
-    @DeleteMapping
-    public ResponseEntity<ApiResponse> deleteBook(@RequestBody BookDto bookDto, @PathVariable Integer id) {
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ApiResponse> deleteBook(@PathVariable Integer id) {
         bookService.deleteBookById(id);
         ApiResponse apiResponse = new ApiResponse("Successfully Deleted", HttpStatus.OK);
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/{id}")
     public ResponseEntity<BookResponse> getBookById(@PathVariable Integer id) {
         BookDto newBook = bookService.getBookById(id);
-        BookResponse bookResponse = new BookResponse(newBook.getTitle(), newBook.getAuthor().getName(), newBook.getGenre().getName(), newBook.getIsbn(), newBook.getStock());
+        BookResponse bookResponse = new BookResponse(newBook.getBookId(), newBook.getTitle(), newBook.getAuthor().getName(), newBook.getGenre().getName(), newBook.getIsbn(), newBook.getStock());
         return new ResponseEntity<>(bookResponse, HttpStatus.FOUND);
     }
 
