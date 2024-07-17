@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashSet;
 import java.util.Set;
 
-@RestController("/api/genre/")
+@RestController
+@RequestMapping("/api/genre/")
 public class GenreController {
 
     @Resource
