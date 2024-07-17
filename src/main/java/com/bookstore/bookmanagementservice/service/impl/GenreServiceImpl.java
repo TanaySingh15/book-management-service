@@ -16,7 +16,7 @@ import java.util.Objects;
 public class GenreServiceImpl implements GenreService {
 
     @Autowired
-    GenreRepo genreRepo;
+    private GenreRepo genreRepo;
 
     @Autowired
     private ModelMapper modelMapper;
