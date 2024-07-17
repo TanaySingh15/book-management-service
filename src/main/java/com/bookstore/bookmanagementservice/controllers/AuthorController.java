@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashSet;
 import java.util.Set;
 
-@RestController("/api/author/")
+@RestController
+@RequestMapping("/api/author/")
 public class AuthorController {
 
     @Resource

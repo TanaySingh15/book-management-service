@@ -30,10 +30,10 @@ public class Book {
     Integer stock;
 
     @Column
-    Timestamp created_date;
+    long created_date;
 
     @Column
-    Timestamp updated_date;
+    long updated_date;
 
     @ManyToOne
     Author author;

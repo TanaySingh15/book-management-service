@@ -1,5 +1,7 @@
 package com.bookstore.bookmanagementservice.controllers;
 
+import com.bookstore.bookmanagementservice.exception.AuthorException;
+import com.bookstore.bookmanagementservice.exception.GenreException;
 import com.bookstore.bookmanagementservice.payload.dto.BookDto;
 import com.bookstore.bookmanagementservice.payload.responses.ApiResponse;
 import com.bookstore.bookmanagementservice.payload.responses.BookResponse;
@@ -9,14 +11,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController("/api/books/")
+@RestController
+@RequestMapping("/api/books/")
 public class BookController {
 
     @Resource
     private BookServiceImpl bookService;
 
     @PostMapping
-    public ResponseEntity<BookResponse> addBook(@RequestBody BookDto bookDto) {
+    public ResponseEntity<BookResponse> addBook(@RequestBody BookDto bookDto) throws AuthorException, GenreException {
         BookDto newBook = bookService.createNewBook(bookDto);
         BookResponse bookResponse = new BookResponse(newBook.getTitle(), newBook.getAuthor().getName(), newBook.getGenre().getName(), newBook.getIsbn(), newBook.getStock());
         return new ResponseEntity<>(bookResponse, HttpStatus.CREATED);
