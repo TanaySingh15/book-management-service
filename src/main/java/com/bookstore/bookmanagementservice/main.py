@@ -1,29 +1,33 @@
 import json
 from datetime import datetime
 import pandas as pd
+import re
 
 class JsonData:
     def __init__(self, storecode=None, engineid=None, terminalId=None, transactionId=None, 
                  thread=None, process=None, log=None, lvl=None, timestamp=None, app=None, type=None):
         self.storecode = storecode
         self.engineid = engineid
-        self.terminalid = terminalId  # Adjust for camelCase terminalId
-        self.transactionid = transactionId  # Adjust for camelCase transactionId
+        self.terminalid = terminalId.strip() if terminalId else None  # Remove extra spaces
+        self.transactionid = transactionId
         self.thread = thread
         self.process = process
         self.log = log
         self.lvl = lvl
-        self.timestamp = timestamp
+        self.timestamp = self.clean_timestamp(timestamp)
         self.app = app
         self.type = type
 
-class TimeData:
-    def __init__(self, start_timestamp, end_timestamp="", total_time="", terminal_id="", transaction_id=""):
-        self.start_timestamp = start_timestamp
-        self.end_timestamp = end_timestamp
-        self.total_time = total_time
-        self.terminal_id = terminal_id
-        self.transaction_id = transaction_id
+    # Clean up and normalize the timestamp
+    def clean_timestamp(self, timestamp):
+        # Try to fix any malformed parts like "Đ8", replace with "08" for August
+        timestamp = re.sub(r'[Đ]', '0', timestamp)
+        # Reformat if necessary, here assuming ISO format is desired
+        try:
+            clean_timestamp = datetime.fromisoformat(timestamp)
+            return clean_timestamp.isoformat()
+        except ValueError:
+            return None
 
 def get_socket_from_request(json_data, msg):
     socket = ""
@@ -40,12 +44,19 @@ def get_socket_from_request(json_data, msg):
 
 def process_file(file_path):
     map_data = {}
-    with open(file_path, 'r') as file:
+    with open(file_path, 'r', encoding='utf-8') as file:
         for line in file:
-            line = line.replace('@timestamp', 'timestamp')
+            # Clean malformed JSON fields
+            line = line.replace('@timestamp', 'timestamp').replace("Iv1", "lvl")
             msg = "\"" + line[line.index("msg"):]
             json_str = line[:line.index("msg") - 2] + "}"
-            json_data = json.loads(json_str, object_hook=lambda d: JsonData(**d))
+            
+            # Use a try-except block to catch and log any parsing errors
+            try:
+                json_data = json.loads(json_str, object_hook=lambda d: JsonData(**d))
+            except json.JSONDecodeError as e:
+                print(f"JSON Decode Error: {e}")
+                continue
 
             if "Read" in msg:
                 json_data.type = "Read"
@@ -94,12 +105,22 @@ def write_to_excel(map_data, output_file):
     df = pd.DataFrame(data)
     df.to_excel(output_file, index=False)
 
+class TimeData:
+    def __init__(self, start_timestamp, end_timestamp="", total_time="", terminal_id="", transaction_id=""):
+        self.start_timestamp = start_timestamp
+        self.end_timestamp = end_timestamp
+        self.total_time = total_time
+        self.terminal_id = terminal_id
+        self.transaction_id = transaction_id
+
 if __name__ == "__main__":
     file_path = "C:/Users/Tanay/Desktop/test/input.txt"
     output_file = "output.xlsx"
     
+    # Process the file and get the map_data
     map_data = process_file(file_path)
     
+    # Write the map_data to an Excel file
     write_to_excel(map_data, output_file)
     
     print(f"Data written to {output_file}")
