@@ -3,12 +3,12 @@ from datetime import datetime
 import pandas as pd
 
 class JsonData:
-    def __init__(self, storecode=None, engineid=None, terminalid=None, transactionid=None, 
+    def __init__(self, storecode=None, engineid=None, terminalId=None, transactionId=None, 
                  thread=None, process=None, log=None, lvl=None, timestamp=None, app=None, type=None):
         self.storecode = storecode
         self.engineid = engineid
-        self.terminalid = terminalid
-        self.transactionid = transactionid
+        self.terminalid = terminalId  # Adjust for camelCase terminalId
+        self.transactionid = transactionId  # Adjust for camelCase transactionId
         self.thread = thread
         self.process = process
         self.log = log
@@ -80,7 +80,6 @@ def process_file(file_path):
     return map_data
 
 def write_to_excel(map_data, output_file):
-    # Convert map_data to a list of dictionaries for easy conversion to a pandas DataFrame
     data = []
     for key, value in map_data.items():
         data.append({
@@ -92,20 +91,15 @@ def write_to_excel(map_data, output_file):
             "Transaction ID": value.transaction_id
         })
     
-    # Create a DataFrame
     df = pd.DataFrame(data)
-    
-    # Write the DataFrame to an Excel file
     df.to_excel(output_file, index=False)
 
 if __name__ == "__main__":
     file_path = "C:/Users/Tanay/Desktop/test/input.txt"
     output_file = "output.xlsx"
     
-    # Process the file and get the map_data
     map_data = process_file(file_path)
     
-    # Write the map_data to an Excel file
     write_to_excel(map_data, output_file)
     
     print(f"Data written to {output_file}")
