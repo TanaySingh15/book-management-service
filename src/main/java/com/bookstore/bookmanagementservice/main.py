@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from dateutil import parser
 from collections import defaultdict
+import openpyxl
 
 class Time:
     def __init__(self, start_timestamp, end_timestamp, total_time, terminal_id, transaction_id):
@@ -29,6 +30,7 @@ def get_socket_from_request(json_data, msg):
 
 def function():
     input_file = 'input.txt'  # Update this with your actual file path
+    output_file = 'output.xlsx'  # Path for the Excel output
     map_data = defaultdict(Time)
 
     with open(input_file, 'r') as file:
@@ -68,9 +70,21 @@ def function():
                     t.total_time = str(duration)[2:]  # Skipping the first two characters (like 'PT')
                     map_data[key] = t
 
-    # Outputting the results
+    # Create a new Excel workbook and sheet
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Transaction Times"
+
+    # Write the header row
+    ws.append(["Key", "Start Timestamp", "End Timestamp", "Total Time", "Terminal ID", "Transaction ID"])
+
+    # Write the data into the Excel sheet
     for key, value in map_data.items():
-        print(f"Key: {key} Value: {value}")
+        ws.append([key, value.start_timestamp, value.end_timestamp, value.total_time, value.terminal_id, value.transaction_id])
+
+    # Save the Excel file
+    wb.save(output_file)
+    print(f"Data has been written to {output_file}")
 
 if __name__ == "__main__":
     function()
