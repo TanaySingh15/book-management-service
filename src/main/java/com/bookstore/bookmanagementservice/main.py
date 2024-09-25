@@ -1,126 +1,76 @@
 import json
 from datetime import datetime
-import pandas as pd
-import re
+from dateutil import parser
+from collections import defaultdict
 
-class JsonData:
-    def __init__(self, storecode=None, engineid=None, terminalId=None, transactionId=None, 
-                 thread=None, process=None, log=None, lvl=None, timestamp=None, app=None, type=None):
-        self.storecode = storecode
-        self.engineid = engineid
-        self.terminalid = terminalId.strip() if terminalId else None  # Remove extra spaces
-        self.transactionid = transactionId
-        self.thread = thread
-        self.process = process
-        self.log = log
-        self.lvl = lvl
-        self.timestamp = self.clean_timestamp(timestamp)
-        self.app = app
-        self.type = type
-
-    # Clean up and normalize the timestamp
-    def clean_timestamp(self, timestamp):
-        # Try to fix any malformed parts like "Đ8", replace with "08" for August
-        timestamp = re.sub(r'[Đ]', '0', timestamp)
-        # Reformat if necessary, here assuming ISO format is desired
-        try:
-            clean_timestamp = datetime.fromisoformat(timestamp)
-            return clean_timestamp.isoformat()
-        except ValueError:
-            return None
-
-def get_socket_from_request(json_data, msg):
-    socket = ""
-    if json_data.terminalid and (json_data.type == "Read" or json_data.type == "Write"):
-        count = 0
-        for i in range(len(msg)):
-            c = msg[i]
-            socket += c
-            if c == '|':
-                count += 1
-            if count == 3:
-                return socket
-    return socket
-
-def process_file(file_path):
-    map_data = {}
-    with open(file_path, 'r', encoding='utf-8') as file:
-        for line in file:
-            # Clean malformed JSON fields
-            line = line.replace('@timestamp', 'timestamp').replace("Iv1", "lvl")
-            msg = "\"" + line[line.index("msg"):]
-            json_str = line[:line.index("msg") - 2] + "}"
-            
-            # Use a try-except block to catch and log any parsing errors
-            try:
-                json_data = json.loads(json_str, object_hook=lambda d: JsonData(**d))
-            except json.JSONDecodeError as e:
-                print(f"JSON Decode Error: {e}")
-                continue
-
-            if "Read" in msg:
-                json_data.type = "Read"
-            elif "Write" in msg:
-                json_data.type = "Write"
-            else:
-                json_data.type = "Error"
-
-            if json_data.type == "Read" or json_data.type == "Write":
-                socket = get_socket_from_request(json_data, msg)
-                key = ""
-                if json_data.terminalid:
-                    key = json_data.terminalid
-                if json_data.transactionid:
-                    key += json_data.transactionid
-                key += socket
-
-                if json_data.type:
-                    if key not in map_data:
-                        if json_data.type == "Read":
-                            t = TimeData(json_data.timestamp, terminal_id=json_data.terminalid, transaction_id=json_data.transactionid)
-                            map_data[key] = t
-                    else:
-                        t = map_data[key]
-                        start_time = datetime.fromisoformat(t.start_timestamp)
-                        end_time = datetime.fromisoformat(json_data.timestamp)
-                        duration = end_time - start_time
-                        t.end_timestamp = json_data.timestamp
-                        t.total_time = str(duration)
-                        map_data[key] = t
-
-    return map_data
-
-def write_to_excel(map_data, output_file):
-    data = []
-    for key, value in map_data.items():
-        data.append({
-            "Key": key,
-            "Start Timestamp": value.start_timestamp,
-            "End Timestamp": value.end_timestamp,
-            "Total Time": value.total_time,
-            "Terminal ID": value.terminal_id,
-            "Transaction ID": value.transaction_id
-        })
-    
-    df = pd.DataFrame(data)
-    df.to_excel(output_file, index=False)
-
-class TimeData:
-    def __init__(self, start_timestamp, end_timestamp="", total_time="", terminal_id="", transaction_id=""):
+class Time:
+    def __init__(self, start_timestamp, end_timestamp, total_time, terminal_id, transaction_id):
         self.start_timestamp = start_timestamp
         self.end_timestamp = end_timestamp
         self.total_time = total_time
         self.terminal_id = terminal_id
         self.transaction_id = transaction_id
 
+    def __str__(self):
+        return f"Start: {self.start_timestamp}, End: {self.end_timestamp}, Total: {self.total_time}, Terminal: {self.terminal_id}, Transaction: {self.transaction_id}"
+
+def get_socket_from_request(json_data, msg):
+    socket = ""
+    if json_data.get('terminalid'):
+        if json_data.get('type') in ['Read', 'Write']:
+            count = 0
+            for c in msg:
+                socket += c
+                if c == '|':
+                    count += 1
+                if count == 3:
+                    return socket
+    return socket
+
+def function():
+    input_file = 'input.txt'  # Update this with your actual file path
+    map_data = defaultdict(Time)
+
+    with open(input_file, 'r') as file:
+        for line in file:
+            # Replacing @timestamp with timestamp to match valid JSON key
+            line = line.replace('@timestamp', 'timestamp')
+            msg_index = line.find('msg')
+            msg = "\"" + line[msg_index:]
+            line = line[:msg_index-2] + "}"
+
+            # Parsing JSON
+            json_data = json.loads(line)
+
+            # Determine the type (Read/Write/Error) from the message
+            if 'Read' in msg:
+                json_data['type'] = 'Read'
+            elif 'Write' in msg:
+                json_data['type'] = 'Write'
+            else:
+                json_data['type'] = 'Error'
+
+            if json_data['type'] in ['Read', 'Write']:
+                socket = get_socket_from_request(json_data, msg)
+                key = (json_data.get('terminalid', '') + json_data.get('transactionid', '') + socket).strip()
+
+                if key not in map_data:
+                    if json_data['type'] == 'Read':
+                        t = Time(json_data['timestamp'], "", "", json_data['terminalid'], json_data['transactionid'])
+                        map_data[key] = t
+                else:
+                    t = map_data[key]
+                    start_time = parser.parse(t.start_timestamp)
+                    end_time = parser.parse(json_data['timestamp'])
+                    duration = end_time - start_time
+
+                    t.end_timestamp = json_data['timestamp']
+                    t.total_time = str(duration)[2:]  # Skipping the first two characters (like 'PT')
+                    map_data[key] = t
+
+    # Outputting the results
+    for key, value in map_data.items():
+        print(f"Key: {key} Value: {value}")
+
 if __name__ == "__main__":
-    file_path = "C:/Users/Tanay/Desktop/test/input.txt"
-    output_file = "output.xlsx"
-    
-    # Process the file and get the map_data
-    map_data = process_file(file_path)
-    
-    # Write the map_data to an Excel file
-    write_to_excel(map_data, output_file)
-    
-    print(f"Data written to {output_file}")
+    function()
